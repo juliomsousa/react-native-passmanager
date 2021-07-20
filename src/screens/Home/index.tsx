@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { SearchBar } from '../../components/SearchBar';
@@ -11,6 +10,8 @@ import {
   EmptyListContainer,
   EmptyListMessage,
 } from './styles';
+import { useStorageData } from '../../hooks/storage';
+import { Alert } from 'react-native';
 
 interface LoginDataProps {
   id: string;
@@ -25,23 +26,19 @@ export function Home() {
   const [searchListData, setSearchListData] = useState<LoginListDataProps>([]);
   const [data, setData] = useState<LoginListDataProps>([]);
 
+  const { getItem } = useStorageData();
+
   async function loadData() {
     try {
-      const storageKey = '@passmanager:logins';
-      const response = await AsyncStorage.getItem(storageKey);
+      const response = await getItem();
 
-      const formattedResponse = response ? JSON.parse(response!) : [];
-
-      setSearchListData(formattedResponse);
-      setData(formattedResponse);
+      setSearchListData(response);
+      setData(response);
     } catch (error) {
       console.log(error);
+      Alert.alert('Atenção', 'Ocorreu um erro ao carregar :(');
     }
   }
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   useFocusEffect(
     useCallback(() => {

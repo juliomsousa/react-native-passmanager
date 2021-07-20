@@ -11,6 +11,7 @@ import { Input } from '../../components/Form/Input';
 import { Button } from '../../components/Form/Button';
 
 import { Container, HeaderTitle, Form } from './styles';
+import { useStorageData } from '../../hooks/storage';
 
 interface FormData {
   title: string;
@@ -34,6 +35,8 @@ export function RegisterLoginData() {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
+  const { setItem } = useStorageData();
+
   async function handleRegister(formData: FormData) {
     const newLoginData = {
       id: String(uuid.v4()),
@@ -41,17 +44,18 @@ export function RegisterLoginData() {
     };
 
     try {
-      const storageKey = '@passmanager:logins';
-      const storagedData = await AsyncStorage.getItem(storageKey);
+      // const storageKey = '@passmanager:logins';
+      // const storagedData = await AsyncStorage.getItem(storageKey);
 
-      const parsedData = storagedData ? JSON.parse(storagedData!) : [];
-      const dataFormatted = [...parsedData, newLoginData];
+      // const parsedData = storagedData ? JSON.parse(storagedData!) : [];
+      // const dataFormatted = [...parsedData, newLoginData];
 
-      await AsyncStorage.setItem(storageKey, JSON.stringify(dataFormatted));
+      await setItem(newLoginData)
 
       reset();
     } catch (error) {
       console.log(error);
+      Alert.alert('Atenção', 'Ocorreu um erro. Tente novamente')
     }
   }
 
@@ -77,7 +81,7 @@ export function RegisterLoginData() {
           <Input
             title="Email"
             name="email"
-            error={errors.email && errors.email.message }
+            error={errors.email && errors.email.message}
             control={control}
             placeholder="Escreva o Email aqui"
             autoCorrect={false}
