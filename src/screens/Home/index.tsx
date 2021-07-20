@@ -26,12 +26,17 @@ export function Home() {
   const [data, setData] = useState<LoginListDataProps>([]);
 
   async function loadData() {
-    const storageKey = '@passmanager:logins';
-    const response = await AsyncStorage.getItem(storageKey);
-    const formattedResponse: LoginListDataProps = response ? JSON.parse(response!) : [];
+    try {
+      const storageKey = '@passmanager:logins';
+      const response = await AsyncStorage.getItem(storageKey);
 
-    setSearchListData(formattedResponse);
-    setData(formattedResponse);
+      const formattedResponse = response ? JSON.parse(response!) : [];
+
+      setSearchListData(formattedResponse);
+      setData(formattedResponse);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   useEffect(() => {
