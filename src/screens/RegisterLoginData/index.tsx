@@ -10,11 +10,7 @@ import uuid from 'react-native-uuid';
 import { Input } from '../../components/Form/Input';
 import { Button } from '../../components/Form/Button';
 
-import {
-  Container,
-  HeaderTitle,
-  Form
-} from './styles';
+import { Container, HeaderTitle, Form } from './styles';
 
 interface FormData {
   title: string;
@@ -24,27 +20,39 @@ interface FormData {
 
 const schema = Yup.object().shape({
   title: Yup.string().required('Título é obrigatório!'),
-  email: Yup.string().email('Não é um email válido').required('Email é obrigatório!'),
+  email: Yup.string()
+    .email('Não é um email válido')
+    .required('Email é obrigatório!'),
   password: Yup.string().required('Senha é obrigatória!'),
-})
+});
 
 export function RegisterLoginData() {
   const {
     control,
     handleSubmit,
     reset,
-    formState: {
-      errors
-    }
-  } = useForm();
+    formState: { errors },
+  } = useForm({ resolver: yupResolver(schema) });
 
   async function handleRegister(formData: FormData) {
     const newLoginData = {
       id: String(uuid.v4()),
-      ...formData
-    }
+      ...formData,
+    };
 
-    // Save data on AsyncStorage
+    try {
+      const storageKey = '@passmanager:logins';
+      const storagedData = await AsyncStorage.getItem(storageKey);
+
+      const parsedData = storagedData ? JSON.parse(storagedData!) : [];
+      const dataFormatted = [...parsedData, newLoginData];
+
+      await AsyncStorage.setItem(storageKey, JSON.stringify(dataFormatted));
+
+      reset();
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
@@ -60,9 +68,7 @@ export function RegisterLoginData() {
           <Input
             title="Título"
             name="title"
-            error={
-              // message error here
-            }
+            error={errors.title && errors.title.message}
             control={control}
             placeholder="Escreva o título aqui"
             autoCapitalize="sentences"
@@ -71,9 +77,7 @@ export function RegisterLoginData() {
           <Input
             title="Email"
             name="email"
-            error={
-              // message error here
-            }
+            error={errors.email && errors.email.message }
             control={control}
             placeholder="Escreva o Email aqui"
             autoCorrect={false}
@@ -83,9 +87,7 @@ export function RegisterLoginData() {
           <Input
             title="Senha"
             name="password"
-            error={
-              // message error here
-            }
+            error={errors.password && errors.password.message}
             control={control}
             secureTextEntry
             placeholder="Escreva a senha aqui"
@@ -93,7 +95,7 @@ export function RegisterLoginData() {
 
           <Button
             style={{
-              marginTop: RFValue(26)
+              marginTop: RFValue(26),
             }}
             title="Salvar"
             onPress={handleSubmit(handleRegister)}
@@ -101,5 +103,5 @@ export function RegisterLoginData() {
         </Form>
       </Container>
     </KeyboardAvoidingView>
-  )
+  );
 }
